@@ -1,0 +1,70 @@
+from random import random
+import matplotlib.pyplot as plt
+from matplotlib.pylab import *
+import math
+import numpy as np
+
+
+def moon(num_points, distance, radius, width):
+    '''
+    Function to create the double moon
+    '''
+
+    points = num_points
+
+    x1 = [0 for _ in range(points)]
+    y1 = [0 for _ in range(points)]
+    x2 = [0 for _ in range(points)]
+    y2 = [0 for _ in range(points)]
+
+    for i in range(points):
+        d = distance
+        r = radius
+        w = width
+        a = random() * math.pi
+        x1[i] = math.sqrt(random()) * math.cos(a) * (w / 2) + (
+                    (-(r + w / 2) if (random() < 0.5) else (r + w / 2)) * math.cos(a))
+        y1[i] = math.sqrt(random()) * math.sin(a) * (w) + (r * math.sin(a)) + d
+
+        a = random() * math.pi + math.pi
+        x2[i] = (r + w / 2) + math.sqrt(random()) * math.cos(a) * (w / 2) + (
+            (-(r + w / 2)) if (random() < 0.5) else (r + w / 2)) * math.cos(a)
+        y2[i] = -(math.sqrt(random()) * math.sin(a) * (-w) + (-r * math.sin(a))) - d
+    return ([x1, x2, y1, y2])
+
+def predict(row, weights):
+    activation = weights[0]
+    for i in range(len(row) - 1):
+        activation += weights[i+1] * row[i]
+    return 1 if activation >= 0 else -1
+
+def train_weights(dataset, learning_rate, n_epoch):
+    weights = [0.0 for i in range(len(dataset[0]))]
+    for epoch in range(n_epoch):
+        for row in dataset:
+            prediction = predict(row, weights)
+            error = row[-1] - prediction
+            weights[0] = weights[0] + learning_rate * error
+            for i in range(len(row) - 1):
+                weights[i+1] = weights[i+1] + learning_rate * error * row[i]
+    return  weights
+
+learning_rate = 0.001
+x1,x2,y1,y2 = moon(1000, 1, 10, 6)
+
+data = []
+data.extend([x1[i], y1[i], 1] for i in range(1000))
+data.extend([x2[i], y2[i], -1] for i in range(1000))
+w= train_weights(data, learning_rate, 100)
+
+x = np.linspace(np.amin(data),np.amax(data),100)
+y = -(w[0] + x*w[1])/w[2]
+plt.plot(x, y, '--k')
+
+for i in data:
+    m = predict(i,w)
+    if m == 1:
+        plt.plot(i[0], i[1], marker='x', color='r',label="bl")
+    else:
+        plt.plot(i[0], i[1], marker='x', color='b',label='rd')
+plt.show()
